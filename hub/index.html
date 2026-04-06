@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MHUB</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#69daff",
+            secondary: "#ff7346",
+            "tertiary-dim": "#00edb4",
+            "surface-container": "#161a21",
+            "surface-container-high": "#1c2028",
+            "surface-container-low": "#10131a",
+            "outline-variant": "#45484f"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: "Inter", sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    }
+    .kinetic-glow {
+      box-shadow: 0 40px 40px -15px rgba(105, 218, 255, 0.08);
+    }
+  </style>
+</head>
+<body id="top" class="min-h-screen flex flex-col overflow-x-hidden bg-slate-100 text-slate-900 dark:bg-[#0b0e14] dark:text-[#ecedf6]">
+  <header class="w-full sticky top-0 z-50 border-b border-slate-200/70 dark:border-none bg-white/90 dark:bg-[#10131a] backdrop-blur shadow-[0_20px_30px_-20px_rgba(0,0,0,0.15)] dark:shadow-[0_40px_40px_-15px_rgba(105,218,255,0.08)]">
+    <div class="flex justify-between items-center w-full px-5 md:px-8 py-5 max-w-[1440px] mx-auto">
+      <div class="flex items-center gap-6">
+        <span class="text-xl font-bold tracking-[-0.02em] text-slate-900 dark:text-[#ecedf6]">MHUB</span>
+        <nav class="hidden md:flex items-center gap-3">
+          <a class="text-cyan-700 dark:text-[#69daff] font-bold tracking-tight hover:bg-slate-100 dark:hover:bg-[#1c2028] transition-all duration-300 px-3 py-1 rounded-lg" href="#top">Home</a>
+          <a class="text-slate-600 dark:text-[#a9abb3] font-bold tracking-tight hover:bg-slate-100 dark:hover:bg-[#1c2028] transition-all duration-300 px-3 py-1 rounded-lg" href="#tools">Tools</a>
+          <a class="text-slate-600 dark:text-[#a9abb3] font-bold tracking-tight hover:bg-slate-100 dark:hover:bg-[#1c2028] transition-all duration-300 px-3 py-1 rounded-lg" href="#supporting">Services</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="themeBtn" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1c2028] dark:hover:bg-[#22262f] text-sm font-semibold transition-all">
+          <span id="themeIcon" class="material-symbols-outlined text-base">light_mode</span>
+          <span id="themeLabel">Modo claro</span>
+        </button>
+        <button id="refreshBtn" class="px-3 py-2 rounded-lg bg-slate-900 text-slate-100 hover:bg-slate-700 dark:bg-[#1c2028] dark:hover:bg-[#22262f] dark:text-[#ecedf6] text-sm font-semibold transition-all">
+          Atualizar status
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow flex flex-col px-5 md:px-8 py-14 md:py-16 max-w-[1440px] mx-auto w-full">
+    <section class="mb-12 md:mb-16">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tighter mb-4 text-slate-900 dark:text-[#ecedf6]">Launch Command</h1>
+      <p class="text-slate-600 dark:text-[#a9abb3] text-lg max-w-2xl">
+        Acesso central para os tres modulos de infraestrutura. Selecione o modulo que deseja operar.
+      </p>
+    </section>
+
+    <div id="tools" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="group relative flex flex-col rounded-xl p-8 transition-all duration-500 hover:-translate-y-2 overflow-hidden kinetic-glow bg-white border border-slate-200 hover:bg-slate-50 dark:bg-surface-container dark:border-transparent dark:hover:bg-surface-container-high">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary group-hover:w-2 transition-all"></div>
+        <div class="mb-8 p-4 bg-primary/10 rounded-xl w-fit group-hover:scale-110 transition-transform duration-500">
+          <span class="material-symbols-outlined text-4xl text-primary" style="font-variation-settings: 'FILL' 1;">database</span>
+        </div>
+        <div class="flex flex-col h-full">
+          <div class="flex items-center justify-between mb-10">
+            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-[#ecedf6]">Storage Analysis</h3>
+            <span id="status-storage" class="text-xs px-2 py-1 rounded-full bg-yellow-500/15 text-yellow-700 dark:text-yellow-300">Checking</span>
+          </div>
+          <div class="mt-auto flex items-center justify-between">
+            <a href="http://127.0.0.1:5000" target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-cyan-400 text-[#08313e] font-bold transition-all active:scale-95 flex items-center gap-2 group/btn">
+              Launch Tool
+              <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+            </a>
+            <span class="text-xs font-bold text-primary tracking-widest uppercase opacity-60">Port 5000</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="group relative flex flex-col rounded-xl p-8 transition-all duration-500 hover:-translate-y-2 overflow-hidden kinetic-glow bg-white border border-slate-200 hover:bg-slate-50 dark:bg-surface-container dark:border-transparent dark:hover:bg-surface-container-high">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-secondary group-hover:w-2 transition-all"></div>
+        <div class="mb-8 p-4 bg-secondary/10 rounded-xl w-fit group-hover:scale-110 transition-transform duration-500">
+          <span class="material-symbols-outlined text-4xl text-secondary" style="font-variation-settings: 'FILL' 1;">cleaning_services</span>
+        </div>
+        <div class="flex flex-col h-full">
+          <div class="flex items-center justify-between mb-10">
+            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-[#ecedf6]">ZombieHunter</h3>
+            <span id="status-zombie" class="text-xs px-2 py-1 rounded-full bg-yellow-500/15 text-yellow-700 dark:text-yellow-300">Checking</span>
+          </div>
+          <div class="mt-auto flex items-center justify-between">
+            <a href="http://127.0.0.1:8000" target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded-xl bg-gradient-to-r from-secondary to-orange-400 text-[#3f1407] font-bold transition-all active:scale-95 flex items-center gap-2 group/btn">
+              Launch Tool
+              <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">bolt</span>
+            </a>
+            <span class="text-xs font-bold text-secondary tracking-widest uppercase opacity-60">Port 8000</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="group relative flex flex-col rounded-xl p-8 transition-all duration-500 hover:-translate-y-2 overflow-hidden kinetic-glow bg-white border border-slate-200 hover:bg-slate-50 dark:bg-surface-container dark:border-transparent dark:hover:bg-surface-container-high">
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#00edb4] group-hover:w-2 transition-all"></div>
+        <div class="mb-8 p-4 bg-[#00edb4]/10 rounded-xl w-fit group-hover:scale-110 transition-transform duration-500">
+          <span class="material-symbols-outlined text-4xl text-[#00edb4]" style="font-variation-settings: 'FILL' 1;">move_down</span>
+        </div>
+        <div class="flex flex-col h-full">
+          <div class="flex items-center justify-between mb-10">
+            <h3 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-[#ecedf6]">SDRS Migration</h3>
+            <span id="status-sdrs" class="text-xs px-2 py-1 rounded-full bg-yellow-500/15 text-yellow-700 dark:text-yellow-300">Checking</span>
+          </div>
+          <div class="mt-auto flex items-center justify-between">
+            <a href="http://127.0.0.1:5500/index.html" target="_blank" rel="noopener noreferrer" class="px-6 py-3 rounded-xl bg-gradient-to-r from-[#00edb4] to-[#79ffd8] text-[#093c2d] font-bold transition-all active:scale-95 flex items-center gap-2 group/btn">
+              Launch Tool
+              <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">sync_alt</span>
+            </a>
+            <span class="text-xs font-bold text-[#00edb4] tracking-widest uppercase opacity-60">Ports 5500 / 8010</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section id="supporting" class="mt-20">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-[#ecedf6]">Supporting Services</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <a href="http://127.0.0.1:8010/docs" target="_blank" rel="noopener noreferrer" class="p-6 rounded-xl border flex items-center gap-4 transition-colors bg-white border-slate-200 hover:bg-slate-50 dark:bg-surface-container-low dark:border-outline-variant/20 dark:hover:bg-surface-container">
+          <span class="material-symbols-outlined text-primary">terminal</span>
+          <span class="font-medium text-slate-900 dark:text-[#ecedf6]">SDRS API Docs</span>
+        </a>
+        <a href="http://127.0.0.1:8010/api/health" target="_blank" rel="noopener noreferrer" class="p-6 rounded-xl border flex items-center gap-4 transition-colors bg-white border-slate-200 hover:bg-slate-50 dark:bg-surface-container-low dark:border-outline-variant/20 dark:hover:bg-surface-container">
+          <span class="material-symbols-outlined text-primary">monitoring</span>
+          <span class="font-medium text-slate-900 dark:text-[#ecedf6]">SDRS Health</span>
+        </a>
+        <a href="http://127.0.0.1:5000" target="_blank" rel="noopener noreferrer" class="p-6 rounded-xl border flex items-center gap-4 transition-colors bg-white border-slate-200 hover:bg-slate-50 dark:bg-surface-container-low dark:border-outline-variant/20 dark:hover:bg-surface-container">
+          <span class="material-symbols-outlined text-primary">inventory_2</span>
+          <span class="font-medium text-slate-900 dark:text-[#ecedf6]">Storage Console</span>
+        </a>
+        <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener noreferrer" class="p-6 rounded-xl border flex items-center gap-4 transition-colors bg-white border-slate-200 hover:bg-slate-50 dark:bg-surface-container-low dark:border-outline-variant/20 dark:hover:bg-surface-container">
+          <span class="material-symbols-outlined text-primary">support</span>
+          <span class="font-medium text-slate-900 dark:text-[#ecedf6]">ZombieHunter Docs</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="w-full py-12 border-t bg-white border-slate-200 dark:bg-[#0b0e14] dark:border-[#45484f]/15">
+    <div class="flex flex-col md:flex-row justify-between items-center px-8 max-w-[1440px] mx-auto gap-8">
+      <div class="flex flex-col gap-2">
+        <span class="text-lg font-bold text-slate-900 dark:text-[#ecedf6]">MHUB</span>
+        <p class="text-slate-600 dark:text-[#a9abb3] text-sm">2026 MHUB. All rights reserved.</p>
+      </div>
+      <div class="flex gap-8">
+        <a class="text-slate-600 dark:text-[#a9abb3] text-sm hover:text-cyan-700 dark:hover:text-[#69daff] transition-colors" href="#tools">Tools</a>
+        <a class="text-slate-600 dark:text-[#a9abb3] text-sm hover:text-cyan-700 dark:hover:text-[#69daff] transition-colors" href="#supporting">Services</a>
+      </div>
+      <div class="flex gap-4">
+        <span class="material-symbols-outlined text-slate-500 dark:text-[#a9abb3]">public</span>
+        <span class="material-symbols-outlined text-slate-500 dark:text-[#a9abb3]">hub</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      const icon = document.getElementById("themeIcon");
+      const label = document.getElementById("themeLabel");
+      if (theme === "light") {
+        root.classList.remove("dark");
+        icon.textContent = "dark_mode";
+        label.textContent = "Modo escuro";
+      } else {
+        root.classList.add("dark");
+        icon.textContent = "light_mode";
+        label.textContent = "Modo claro";
+      }
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem("mhub_theme");
+      if (saved === "light" || saved === "dark") {
+        applyTheme(saved);
+        return;
+      }
+      applyTheme("dark");
+    }
+
+    function toggleTheme() {
+      const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
+      localStorage.setItem("mhub_theme", next);
+      applyTheme(next);
+    }
+
+    async function check(url) {
+      try {
+        await fetch(url, { mode: "no-cors", cache: "no-store" });
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function setStatus(id, ok) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (ok) {
+        el.textContent = "Online";
+        el.className = "text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300";
+      } else {
+        el.textContent = "Offline";
+        el.className = "text-xs px-2 py-1 rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300";
+      }
+    }
+
+    async function refreshStatus() {
+      const [storage, zombie, sdrsFe, sdrsBe] = await Promise.all([
+        check("http://127.0.0.1:5000"),
+        check("http://127.0.0.1:8000/health"),
+        check("http://127.0.0.1:5500/index.html"),
+        check("http://127.0.0.1:8010/api/health")
+      ]);
+      setStatus("status-storage", storage);
+      setStatus("status-zombie", zombie);
+      setStatus("status-sdrs", sdrsFe && sdrsBe);
+    }
+
+    initTheme();
+    document.getElementById("themeBtn").addEventListener("click", toggleTheme);
+    document.getElementById("refreshBtn").addEventListener("click", refreshStatus);
+    refreshStatus();
+    setInterval(refreshStatus, 15000);
+  </script>
+</body>
+</html>
