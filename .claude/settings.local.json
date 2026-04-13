@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C C:/Users/mscaff/MHUB status)",
+      "Bash(git -C /c/Users/mscaff/Desktop/zombiehunter status)",
+      "Bash(git -C \"/c/Users/mscaff/MHUB/teste de interface\" status)",
+      "Bash(git -C \"/c/Users/mscaff/MHUB/teste de interface\" remote -v)",
+      "Bash(git -C \"/c/Users/mscaff/MHUB/teste de interface\" log --oneline -5)"
+    ]
+  }
+}

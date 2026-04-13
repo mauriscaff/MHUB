@@ -71,6 +71,25 @@
       </p>
     </section>
 
+    <section class="mb-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-surface-container-low dark:border-outline-variant/20">
+        <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-[#a9abb3]">Modulos Online</p>
+        <p id="metric-online" class="mt-2 text-2xl font-extrabold text-emerald-600 dark:text-emerald-300">-</p>
+      </article>
+      <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-surface-container-low dark:border-outline-variant/20">
+        <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-[#a9abb3]">Modulos Offline</p>
+        <p id="metric-offline" class="mt-2 text-2xl font-extrabold text-rose-600 dark:text-rose-300">-</p>
+      </article>
+      <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-surface-container-low dark:border-outline-variant/20">
+        <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-[#a9abb3]">Endpoints checados</p>
+        <p id="metric-checked" class="mt-2 text-2xl font-extrabold text-cyan-700 dark:text-cyan-300">-</p>
+      </article>
+      <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-surface-container-low dark:border-outline-variant/20">
+        <p class="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-[#a9abb3]">Ultima atualizacao</p>
+        <p id="metric-updated" class="mt-2 text-lg font-bold text-slate-800 dark:text-[#ecedf6]">-</p>
+      </article>
+    </section>
+
     <div id="tools" class="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div class="group relative flex flex-col rounded-xl p-8 transition-all duration-500 hover:-translate-y-2 overflow-hidden kinetic-glow bg-white border border-slate-200 hover:bg-slate-50 dark:bg-surface-container dark:border-transparent dark:hover:bg-surface-container-high">
         <div class="absolute left-0 top-0 bottom-0 w-1 bg-primary group-hover:w-2 transition-all"></div>
@@ -234,9 +253,20 @@
         check("http://127.0.0.1:5500/index.html"),
         check("http://127.0.0.1:8010/api/health")
       ]);
+      const moduleStatuses = [storage, zombie, sdrsFe && sdrsBe];
+      const onlineCount = moduleStatuses.filter(Boolean).length;
+      const offlineCount = moduleStatuses.length - onlineCount;
       setStatus("status-storage", storage);
       setStatus("status-zombie", zombie);
       setStatus("status-sdrs", sdrsFe && sdrsBe);
+      const onlineEl = document.getElementById("metric-online");
+      const offlineEl = document.getElementById("metric-offline");
+      const checkedEl = document.getElementById("metric-checked");
+      const updatedEl = document.getElementById("metric-updated");
+      if (onlineEl) onlineEl.textContent = `${onlineCount}/3`;
+      if (offlineEl) offlineEl.textContent = `${offlineCount}`;
+      if (checkedEl) checkedEl.textContent = "4";
+      if (updatedEl) updatedEl.textContent = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     }
 
     initTheme();
