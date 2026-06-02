@@ -8,9 +8,14 @@ $ErrorActionPreference = "Stop"
 
 $Root = $PSScriptRoot
 $HubDir = Join-Path $Root "hub"
+$NewAoproDir = "C:\Users\mscaff\Documents\newaopro"
 $RuntimeDir = Join-Path $Root ".hub-runtime"
 $HubPidFile = Join-Path $RuntimeDir "hub_server.pid"
 $ProjetoPidFile = Join-Path $RuntimeDir "projeto_completo.pid"
+$NewAoproFrontendPidFile = Join-Path $RuntimeDir "newaopro_frontend.pid"
+$NewAoproBackendPidFile = Join-Path $RuntimeDir "newaopro_backend.pid"
+$NewAoproFrontendPort = 5000
+$NewAoproBackendPort = 5001
 
 if (-not (Test-Path $HubDir)) {
     throw "Diretorio do portal nao encontrado: $HubDir"
@@ -99,8 +104,8 @@ function Resolve-PythonGlobal {
     throw "Python nao encontrado no PATH."
 }
 
-function Resolve-ProjetoPython {
-    $venvPy = Join-Path $Root "projeto_completo_producao\.venv\Scripts\python.exe"
+function Resolve-NewAoproBackendPython {
+    $venvPy = Join-Path $NewAoproDir "backend\.venv\Scripts\python.exe"
     if (Test-Path $venvPy) {
         return $venvPy
     }
@@ -134,6 +139,7 @@ function Ensure-HubServer {
         -FilePath $pythonExe `
         -ArgumentList @("-m", "http.server", "$Port", "--bind", "127.0.0.1") `
         -WorkingDirectory $HubDir `
+        -WindowStyle Hidden `
         -RedirectStandardOutput $outLog `
         -RedirectStandardError $errLog `
         -PassThru
@@ -157,57 +163,125 @@ function Ensure-HubServer {
 }
 
 function Ensure-ProjetoCompleto {
-    $projetoDir = Join-Path $Root "projeto_completo_producao"
-    $port = 5000
-    $knownPid = Read-PidFile -PidFile $ProjetoPidFile
-    $portPids = @(Get-ListeningPids -Port $port)
+    $projetoDir = $NewAoproDir
+    $frontendDir = Join-Path $projetoDir "frontend"
+    $backendDir = Join-Path $projetoDir "backend"
+    $frontendPort = $NewAoproFrontendPort
+    $backendPort = $NewAoproBackendPort
 
-    if ($portPids.Count -gt 0) {
-        $managed = $knownPid -and ($portPids -contains $knownPid)
-        if ($managed) {
-            Write-Host "projeto_completo_producao ja ativo na porta $port."
-            return
-        }
-        if (Test-Url200 -Url "http://127.0.0.1:$port" -TimeoutSec 4) {
-            Write-Host "Aviso: porta $port em uso por processo externo, mas servico responde. Seguindo."
-            return
-        }
-        throw "Porta $port ja esta em uso por processo externo (PID: $($portPids -join ', '))."
+    if (-not (Test-Path $projetoDir)) {
+        throw "Diretorio do novo projeto nao encontrado: $projetoDir"
+    }
+    if (-not (Test-Path $frontendDir)) {
+        throw "Diretorio frontend do newaopro nao encontrado: $frontendDir"
+    }
+    if (-not (Test-Path $backendDir)) {
+        throw "Diretorio backend do newaopro nao encontrado: $backendDir"
     }
 
-    $pythonExe = Resolve-ProjetoPython
-    $outLog = Join-Path $RuntimeDir "projeto_completo_5000.out.log"
-    $errLog = Join-Path $RuntimeDir "projeto_completo_5000.err.log"
-    foreach ($f in @($outLog, $errLog)) {
+    $frontendPids = @(Get-ListeningPids -Port $frontendPort)
+    $backendPids = @(Get-ListeningPids -Port $backendPort)
+
+    if ($frontendPids.Count -gt 0 -and $backendPids.Count -gt 0) {
+        $frontendOk = Test-Url200 -Url "http://127.0.0.1:$frontendPort" -TimeoutSec 4
+        $backendOk = Test-Url200 -Url "http://127.0.0.1:$backendPort/health" -TimeoutSec 4
+        if ($frontendOk -and $backendOk) {
+            Write-Host "newaopro ja ativo em http://127.0.0.1:$frontendPort (backend $backendPort)."
+            return
+        }
+    }
+
+    if ($frontendPids.Count -gt 0) {
+        throw "Porta $frontendPort ja esta em uso por processo externo (PID: $($frontendPids -join ', '))."
+    }
+    if ($backendPids.Count -gt 0) {
+        throw "Porta $backendPort ja esta em uso por processo externo (PID: $($backendPids -join ', '))."
+    }
+
+    $pythonExe = Resolve-NewAoproBackendPython
+    $npmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
+    if (-not $npmCmd) {
+        $npmCmd = Get-Command npm -ErrorAction SilentlyContinue
+    }
+    if (-not $npmCmd) {
+        throw "npm nao encontrado no PATH para iniciar o frontend do newaopro."
+    }
+
+    $env:DATABASE_URL = "sqlite:///oceanstor_local.db"
+    $env:CORS_ORIGINS = "http://127.0.0.1:$frontendPort,http://localhost:$frontendPort"
+    $env:VITE_API_BASE_URL = "http://127.0.0.1:$backendPort/api/v1"
+
+    $dbInitCode = @'
+import app.models
+from app.db.session import Base, SessionLocal, engine
+from app.core.auth import ensure_initial_admin
+
+Base.metadata.create_all(bind=engine)
+db = SessionLocal()
+try:
+    ensure_initial_admin(db)
+finally:
+    db.close()
+print("db ready")
+'@
+
+    Push-Location $backendDir
+    try {
+        & $pythonExe -c $dbInitCode | Out-Host
+    }
+    finally {
+        Pop-Location
+    }
+
+    $backendOutLog = Join-Path $RuntimeDir "newaopro_backend_$backendPort.out.log"
+    $backendErrLog = Join-Path $RuntimeDir "newaopro_backend_$backendPort.err.log"
+    $frontendOutLog = Join-Path $RuntimeDir "newaopro_frontend_$frontendPort.out.log"
+    $frontendErrLog = Join-Path $RuntimeDir "newaopro_frontend_$frontendPort.err.log"
+    foreach ($f in @($backendOutLog, $backendErrLog, $frontendOutLog, $frontendErrLog)) {
         if (Test-Path $f) {
             Remove-Item $f -Force -ErrorAction SilentlyContinue
         }
     }
 
-    $proc = Start-Process `
+    $backendProc = Start-Process `
         -FilePath $pythonExe `
-        -ArgumentList @("dashboard_api.py") `
-        -WorkingDirectory $projetoDir `
-        -RedirectStandardOutput $outLog `
-        -RedirectStandardError $errLog `
+        -ArgumentList @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "$backendPort") `
+        -WorkingDirectory $backendDir `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $backendOutLog `
+        -RedirectStandardError $backendErrLog `
         -PassThru
 
-    $proc.Id | Set-Content -Path $ProjetoPidFile -Encoding ascii
+    $frontendProc = Start-Process `
+        -FilePath $npmCmd.Source `
+        -ArgumentList @("run", "dev", "--", "--host", "127.0.0.1", "--port", "$frontendPort") `
+        -WorkingDirectory $frontendDir `
+        -WindowStyle Hidden `
+        -RedirectStandardOutput $frontendOutLog `
+        -RedirectStandardError $frontendErrLog `
+        -PassThru
+
+    $backendProc.Id | Set-Content -Path $NewAoproBackendPidFile -Encoding ascii
+    $frontendProc.Id | Set-Content -Path $NewAoproFrontendPidFile -Encoding ascii
+    @($backendProc.Id, $frontendProc.Id) | Set-Content -Path $ProjetoPidFile -Encoding ascii
 
     $ready = $false
-    for ($i = 0; $i -lt 20; $i++) {
-        if (Test-PortListening -Port $port) {
+    for ($i = 0; $i -lt 90; $i++) {
+        $frontendOk = Test-Url200 -Url "http://127.0.0.1:$frontendPort" -TimeoutSec 3
+        $backendOk = Test-Url200 -Url "http://127.0.0.1:$backendPort/health" -TimeoutSec 3
+        if ($frontendOk -and $backendOk) {
             $ready = $true
             break
         }
-        Start-Sleep -Milliseconds 500
+        Start-Sleep -Seconds 2
     }
     if (-not $ready) {
-        Stop-ProcessSafe -ProcessId $proc.Id
-        throw "projeto_completo_producao nao abriu porta $port."
+        Stop-ProcessSafe -ProcessId $backendProc.Id
+        Stop-ProcessSafe -ProcessId $frontendProc.Id
+        throw "newaopro nao respondeu em http://127.0.0.1:$frontendPort e http://127.0.0.1:$backendPort/health. Logs: $backendErrLog / $frontendErrLog"
     }
 
-    Write-Host "projeto_completo_producao iniciado em http://127.0.0.1:$port"
+    Write-Host "newaopro iniciado em http://127.0.0.1:$frontendPort (backend http://127.0.0.1:$backendPort)"
 }
 
 function Start-TesteInterface {
@@ -219,6 +293,9 @@ function Start-TesteInterface {
     $script = Join-Path $Root "teste de interface\start.ps1"
     if (-not (Test-Path $script)) {
         throw "Script nao encontrado: $script"
+    }
+    if ($env:DATABASE_URL -eq "sqlite:///oceanstor_local.db") {
+        Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
     }
     try {
         & powershell -NoProfile -ExecutionPolicy Bypass -File $script -Port 8000
@@ -281,7 +358,8 @@ Write-Host ""
 Write-Host "MHUB pronto."
 Write-Host "Portal: http://127.0.0.1:$HubPort/index.html"
 Write-Host "Apps:"
-Write-Host " - projeto_completo_producao: http://127.0.0.1:5000"
+Write-Host " - newaopro:                  http://127.0.0.1:$NewAoproFrontendPort"
+Write-Host " - newaopro backend:          http://127.0.0.1:$NewAoproBackendPort/health"
 Write-Host " - teste de interface:       http://127.0.0.1:8000"
 Write-Host " - sdrs-manager frontend:    http://127.0.0.1:5500/index.html"
 Write-Host " - sdrs-manager backend:     http://127.0.0.1:8010/api/health"

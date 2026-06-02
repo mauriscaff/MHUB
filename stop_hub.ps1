@@ -6,6 +6,9 @@ $Root = $PSScriptRoot
 $RuntimeDir = Join-Path $Root ".hub-runtime"
 $HubPidFile = Join-Path $RuntimeDir "hub_server.pid"
 $ProjetoPidFile = Join-Path $RuntimeDir "projeto_completo.pid"
+$NewAoproDir = "C:\Users\mscaff\Documents\newaopro"
+$NewAoproFrontendPidFile = Join-Path $RuntimeDir "newaopro_frontend.pid"
+$NewAoproBackendPidFile = Join-Path $RuntimeDir "newaopro_backend.pid"
 
 function Get-ListeningPids {
     param([int]$Port)
@@ -56,7 +59,12 @@ function Is-ProjetoCompletoProcess {
         if (-not $proc) { return $false }
         $cmd = [string]$proc.CommandLine
         if (-not $cmd) { return $false }
-        return ($cmd -match "(?i)dashboard_api\.py")
+        return (
+            $cmd -match "(?i)dashboard_api\.py" -or
+            $cmd -match "(?i)uvicorn\s+app\.main:app" -or
+            $cmd -match "(?i)newaopro" -or
+            $cmd -match "(?i)\bvite(\.js)?\b"
+        )
     }
     catch {
         return $false
@@ -92,10 +100,12 @@ function Stop-FromPidFile {
 }
 
 function Stop-ProjetoCompletoFallback {
-    $pids = @(Get-ListeningPids -Port 5000)
-    foreach ($pidValue in $pids) {
-        if (Is-ProjetoCompletoProcess -PidCandidate $pidValue) {
-            Stop-ProcessSafe -ProcessId $pidValue -Label "projeto_completo_producao(porta 5000)"
+    foreach ($port in @(5000, 5001)) {
+        $pids = @(Get-ListeningPids -Port $port)
+        foreach ($pidValue in $pids) {
+            if (Is-ProjetoCompletoProcess -PidCandidate $pidValue) {
+                Stop-ProcessSafe -ProcessId $pidValue -Label "newaopro(porta $port)"
+            }
         }
     }
 }
@@ -119,7 +129,9 @@ if (Test-Path $stopSdrs) {
     & powershell -NoProfile -ExecutionPolicy Bypass -File $stopSdrs -BackendPort 8010 -FrontendPort 5500
 }
 
-Stop-FromPidFile -Label "projeto_completo_producao" -PidFile $ProjetoPidFile
+Stop-FromPidFile -Label "newaopro backend" -PidFile $NewAoproBackendPidFile
+Stop-FromPidFile -Label "newaopro frontend" -PidFile $NewAoproFrontendPidFile
+Remove-Item $ProjetoPidFile -Force -ErrorAction SilentlyContinue
 Stop-ProjetoCompletoFallback
 
 Stop-FromPidFile -Label "hub portal" -PidFile $HubPidFile
